@@ -29,7 +29,6 @@ export default function Home() {
     accounts,
     ethersSigner,
     ethersReadonlyProvider,
-    ethersDirectSigner,
   } = useMetaMaskEthersSigner();
   const address = accounts?.[0];
   const { toast } = useToast();
@@ -84,11 +83,9 @@ export default function Home() {
   // Load user messages
   const loadMessages = useCallback(async () => {
     // For getUserMessages(), we need a signer because it uses msg.sender
-    // Use ethersDirectSigner for local network, or ethersSigner for production
-    const signerForRead = isLocalNetwork ? (ethersDirectSigner || ethersSigner) : ethersSigner;
-    
-    if (!contractAddress || !signerForRead || !address) {
-      console.log("[loadMessages] Not ready:", { contractAddress, signerForRead: !!signerForRead, address });
+    // Always use MetaMask signer for wallet authentication
+    if (!contractAddress || !ethersSigner || !address) {
+      console.log("[loadMessages] Not ready:", { contractAddress, ethersSigner: !!ethersSigner, address });
       return;
     }
 
@@ -98,7 +95,7 @@ export default function Home() {
       const contract = new ethers.Contract(
         contractAddress as `0x${string}`,
         EncryptedMessagesABI.abi,
-        signerForRead
+        ethersSigner
       );
 
       const messageIds = (await contract.getUserMessages()) as bigint[];
@@ -126,7 +123,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [contractAddress, ethersDirectSigner, ethersSigner, address, isLocalNetwork]);
+  }, [contractAddress, ethersSigner, address]);
 
   // Load messages when connected
   useEffect(() => {
@@ -140,7 +137,6 @@ export default function Home() {
     console.log("[submitMessage] Starting submission, content:", content);
     console.log("[submitMessage] contractAddress:", contractAddress);
     console.log("[submitMessage] ethersSigner:", !!ethersSigner);
-    console.log("[submitMessage] ethersDirectSigner:", !!ethersDirectSigner);
     console.log("[submitMessage] address:", address);
     console.log("[submitMessage] isLocalNetwork:", isLocalNetwork);
     
@@ -164,35 +160,18 @@ export default function Home() {
 
       if (isLocalNetwork) {
         // Local network: use mock function with plaintext values
-        // Use direct signer to bypass MetaMask RPC rate limiting
-        const signerToUse = ethersDirectSigner || ethersSigner;
-        if (!signerToUse) {
-          throw new Error("No signer available for local network");
-        }
-
+        // Always use MetaMask signer for wallet authentication
         toast({
           title: "Submitting Message",
-          description: "Using mock mode for local testing...",
+          description: "Please confirm in your wallet...",
         });
 
         const numContent = BigInt(content);
         const timestamp = BigInt(Math.floor(Date.now() / 1000));
 
-        // Create contract with direct signer for local network
-        const localContract = new ethers.Contract(
-          contractAddress as `0x${string}`,
-          EncryptedMessagesABI.abi,
-          signerToUse
-        );
-
-        toast({
-          title: "Submitting Transaction",
-          description: ethersDirectSigner ? "Sending directly to local node..." : "Please confirm in your wallet...",
-        });
-
         // Call the mock function that accepts plaintext
         console.log("[submitMessage] Calling submitMessageMock with:", { numContent: numContent.toString(), timestamp: timestamp.toString() });
-        tx = await localContract.submitMessageMock(numContent, timestamp);
+        tx = await contract.submitMessageMock(numContent, timestamp);
         console.log("[submitMessage] Transaction sent, hash:", tx.hash);
         
         // Store the plaintext content for later "decryption" (local testing only)
@@ -278,6 +257,15 @@ export default function Home() {
 
   // Decrypt message
   const decryptMessage = async (messageId: number) => {
+    if (!ethersSigner) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to decrypt messages",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setMessages((prev) =>
       prev.map((msg) =>
         msg.id === messageId ? { ...msg, isDecrypting: true } : msg
@@ -285,15 +273,25 @@ export default function Home() {
     );
 
     try {
+      // Request wallet signature for authentication
+      toast({
+        title: "Wallet Authentication",
+        description: "Please sign the message in your wallet to decrypt...",
+      });
+
+      const signatureMessage = `Decrypt message #${messageId} from CipherWaveSync\nTimestamp: ${Date.now()}`;
+      console.log("[decryptMessage] Requesting signature for message:", signatureMessage);
+      
+      // This will trigger MetaMask popup for signature
+      const signature = await ethersSigner.signMessage(signatureMessage);
+      console.log("[decryptMessage] Got signature:", signature);
+
       let decryptedContent: string;
 
       if (isLocalNetwork) {
         // Local network: use stored plaintext value
         console.log("[decryptMessage] Local network, looking up messageId:", messageId);
         console.log("[decryptMessage] localMessageContents:", localMessageContents);
-        
-        // Simulate decryption delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
         
         const storedContent = localMessageContents[messageId];
         if (storedContent) {
@@ -304,7 +302,7 @@ export default function Home() {
         }
       } else {
         // Production network: use FHEVM to decrypt
-        // TODO: Implement real FHEVM decryption
+        // TODO: Implement real FHEVM decryption with signature verification
         await new Promise((resolve) => setTimeout(resolve, 1500));
         decryptedContent = "[Decryption not implemented for production]";
       }
