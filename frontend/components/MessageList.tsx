@@ -52,15 +52,27 @@ const MessageList = ({ messages, onDecrypt, isLoading }: MessageListProps) => {
     );
   }
 
+  const sortedMessages = [...messages].sort((a, b) => b.id - a.id);
+
   return (
     <div className="space-y-4">
-      {messages.map((message) => (
-        <Card key={message.id} className="p-4 border-border/50">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-muted-foreground">
+          {messages.length} {messages.length === 1 ? 'message' : 'messages'} found
+        </p>
+      </div>
+      {sortedMessages.map((message) => (
+        <Card key={message.id} className="p-4 border-border/50 hover:border-primary/50 transition-colors">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Lock className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">Message #{message.id}</span>
+                {message.decrypted && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                    Decrypted
+                  </span>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -92,11 +104,12 @@ const MessageList = ({ messages, onDecrypt, isLoading }: MessageListProps) => {
                 onClick={() => onDecrypt(message.id)}
                 disabled={message.isDecrypting}
                 className="ml-4 gap-2"
+                aria-label={`Decrypt message ${message.id}`}
               >
                 {message.isDecrypting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4" aria-hidden="true" />
                 )}
                 {message.isDecrypting ? "Decrypting..." : "Decrypt"}
               </Button>
