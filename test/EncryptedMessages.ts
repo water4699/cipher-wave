@@ -205,4 +205,66 @@ describe("EncryptedMessages", function () {
     const totalMessages = await encryptedMessagesContract.getTotalMessages();
     expect(totalMessages).to.eq(2);
   });
+
+  it("should return correct user message count", async function () {
+    const clearContent = 999n;
+    const clearTimestamp = Math.floor(Date.now() / 1000);
+
+    // Submit message as Alice
+    const encryptedInput = await fhevm
+      .createEncryptedInput(contractAddress, signers.alice.address)
+      .add64(clearContent)
+      .add32(clearTimestamp)
+      .encrypt();
+
+    await encryptedMessagesContract
+      .connect(signers.alice)
+      .submitMessage(encryptedInput.handles[0], encryptedInput.handles[1], encryptedInput.inputProof);
+
+    // Check Alice's message count
+    const aliceCount = await encryptedMessagesContract.getUserMessageCount(signers.alice.address);
+    expect(aliceCount).to.eq(1);
+
+    // Check Bob's message count (should be 0)
+    const bobCount = await encryptedMessagesContract.getUserMessageCount(signers.bob.address);
+    expect(bobCount).to.eq(0);
+  });
+
+  it("should handle multiple users submitting messages independently", async function () {
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    // Alice submits a message
+    const aliceInput = await fhevm
+      .createEncryptedInput(contractAddress, signers.alice.address)
+      .add64(100n)
+      .add32(timestamp)
+      .encrypt();
+
+    await encryptedMessagesContract
+      .connect(signers.alice)
+      .submitMessage(aliceInput.handles[0], aliceInput.handles[1], aliceInput.inputProof);
+
+    // Bob submits a message
+    const bobInput = await fhevm
+      .createEncryptedInput(contractAddress, signers.bob.address)
+      .add64(200n)
+      .add32(timestamp)
+      .encrypt();
+
+    await encryptedMessagesContract
+      .connect(signers.bob)
+      .submitMessage(bobInput.handles[0], bobInput.handles[1], bobInput.inputProof);
+
+    // Verify each user has their own message
+    const aliceMessages = await encryptedMessagesContract.connect(signers.alice).getUserMessages();
+    const bobMessages = await encryptedMessagesContract.connect(signers.bob).getUserMessages();
+
+    expect(aliceMessages.length).to.eq(1);
+    expect(bobMessages.length).to.eq(1);
+    expect(aliceMessages[0]).to.not.eq(bobMessages[0]);
+
+    // Total messages should be 2
+    const totalMessages = await encryptedMessagesContract.getTotalMessages();
+    expect(totalMessages).to.eq(2);
+  });
 });
