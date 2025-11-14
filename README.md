@@ -1,11 +1,35 @@
-# FHEVM Hardhat Template
+# CipherWaveSync - Encrypted Message System
 
-A Hardhat-based template for developing Fully Homomorphic Encryption (FHE) enabled Solidity smart contracts using the
-FHEVM protocol by Zama.
+<div align="center">
+  <img src="frontend/app/icon.svg" alt="CipherWaveSync Logo" width="120"/>
+  
+  **A decentralized encrypted messaging platform powered by FHEVM technology**
+  
+  [🚀 Live Demo](https://cipher-wave-sync.vercel.app/) | [📖 Documentation](https://docs.zama.ai/fhevm)
+</div>
 
-## Quick Start
+## 🌟 Overview
 
-For detailed instructions see:
+CipherWaveSync is an innovative encrypted messaging system that leverages Fully Homomorphic Encryption (FHE) to enable secure, private communication on the blockchain. Built on Zama's FHEVM protocol, it allows users to submit and manage encrypted messages that remain confidential throughout their lifecycle.
+
+### 🎥 Demo Video
+
+![Demo Video](./cipher-wave-sync-demo.mp4)
+
+Watch the full demonstration to see CipherWaveSync in action!
+
+### Key Features
+
+- 🔐 **End-to-End Encryption**: Messages are encrypted using FHE technology
+- 🎨 **Modern UI**: Beautiful, responsive interface built with Next.js and TailwindCSS
+- 🔗 **Blockchain Integration**: Secure storage on Ethereum-compatible networks
+- 🔑 **Wallet Authentication**: MetaMask integration for secure user authentication
+- 📊 **Real-time Visualization**: Animated waveform display for enhanced UX
+- ✅ **Comprehensive Testing**: Full test coverage for smart contracts
+
+## 🚀 Quick Start
+
+For detailed FHEVM instructions see:
 [FHEVM Hardhat Quick Start Tutorial](https://docs.zama.ai/protocol/solidity-guides/getting-started/quick-start-tutorial)
 
 ### Prerequisites
@@ -68,14 +92,21 @@ For detailed instructions see:
 ## 📁 Project Structure
 
 ```
-fhevm-hardhat-template/
-├── contracts/           # Smart contract source files
-│   └── FHECounter.sol   # Example FHE counter contract
-├── deploy/              # Deployment scripts
-├── tasks/               # Hardhat custom tasks
-├── test/                # Test files
-├── hardhat.config.ts    # Hardhat configuration
-└── package.json         # Dependencies and scripts
+cipher-wave-sync/
+├── contracts/                    # Smart contract source files
+│   ├── EncryptedMessages.sol    # Main encrypted messaging contract
+│   └── FHECounter.sol           # Example FHE counter contract
+├── frontend/                     # Next.js frontend application
+│   ├── app/                     # Next.js app directory
+│   ├── components/              # React components
+│   ├── hooks/                   # Custom React hooks
+│   ├── fhevm/                   # FHEVM integration utilities
+│   └── abi/                     # Contract ABIs
+├── deploy/                      # Deployment scripts
+├── tasks/                       # Hardhat custom tasks
+├── test/                        # Test files
+├── hardhat.config.ts            # Hardhat configuration
+└── package.json                 # Dependencies and scripts
 ```
 
 ## 📜 Available Scripts
@@ -105,6 +136,26 @@ This project is licensed under the BSD-3-Clause-Clear License. See the [LICENSE]
 - **Documentation**: [FHEVM Docs](https://docs.zama.ai)
 - **Community**: [Zama Discord](https://discord.gg/zama)
 
+## 🎯 Use Cases
+
+- **Private Messaging**: Send encrypted messages that remain confidential on-chain
+- **Secure Data Storage**: Store sensitive information with FHE protection
+- **Confidential Voting**: Enable private voting mechanisms
+- **Anonymous Transactions**: Conduct transactions with enhanced privacy
+
+## 🛠️ Technology Stack
+
+- **Smart Contracts**: Solidity 0.8.24 with FHEVM
+- **Frontend**: Next.js 15, React, TypeScript
+- **Styling**: TailwindCSS, shadcn/ui
+- **Blockchain**: Ethereum, Hardhat
+- **Encryption**: Zama FHEVM Protocol
+- **Wallet**: MetaMask integration via wagmi
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
 ---
 
-**Built with ❤️ by the Zama team**
+**Built with ❤️ using FHEVM technology by Zama**
